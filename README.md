@@ -26,3 +26,55 @@ Note that the example code disables the button before performing the action in o
 # Links
  * [Hexler TouchOSC](https://hexler.net/touchosc)
  * [TouchOSC Scripting API](https://hexler.net/pub/touchosc/scripting-api.html)
+
+# The Code
+```
+CONFIRM_TIMEOUT_SECS = 3
+local FLASH_RATE_MS = 140
+
+local confirmStartTS = 0
+local cycleTS = 0
+
+function onValueChanged(key)
+  if (key ~= 'touch' or self.values.touch == false) then
+    return
+  end
+  
+  if (confirmStartTS == 0) then
+    confirmStartTS = getMillis()
+  else
+    confirmStartTS = 0
+    cycleTS = 0
+    self.interactive = false
+    
+    -- TODO: Do confirmed action here
+    print('Do action')
+    
+    self.interactive = true
+  end
+end
+
+function update()
+  if (confirmStartTS > 0) then
+    local ts = getMillis()
+    
+    -- Check for confirmation timeout
+    if ((ts - confirmStartTS) > (CONFIRM_TIMEOUT_SECS * 1000)) then
+      confirmStartTS = 0
+      self.values.x = 0
+    end
+    
+    -- Flash
+    if ((ts - cycleTS) > FLASH_RATE_MS) then
+      cycleTS = ts
+      if (self.values.x == 0) then
+        self.values.x = 1
+      else
+        self.values.x = 0
+      end
+    end
+  else
+    self.values.x = 0
+  end
+end
+```
